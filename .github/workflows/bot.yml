@@ -1,0 +1,33 @@
+name: paper bot
+on:
+  schedule:
+    - cron: '35 13 * * 1-5'
+    - cron: '30 20 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.13'}
+      - run: pip install -r requirements.txt
+      - name: decide mode
+        id: mode
+        run: |
+          H=$(date -u +%H)
+          if [ "$H" -lt 16 ]; then echo "mode=morning" >> $GITHUB_OUTPUT; else echo "mode=evening" >> $GITHUB_OUTPUT; fi
+      - name: run bot
+        env:
+          APCA_API_KEY_ID:     ${{ secrets.APCA_API_KEY_ID }}
+          APCA_API_SECRET_KEY: ${{ secrets.APCA_API_SECRET_KEY }}
+          SEC_UA:              ${{ secrets.SEC_UA }}
+        run: |
+          python run_bot.py ${{ steps.mode.outputs.mode }} --target ${{ vars.TARGET }} --stop ${{ vars.STOP }} --max-hold 5
+      - name: commit logbook
+        run: |
+          git config user.name bot && git config user.email bot@users.noreply.github.com
+          git add logbook.db || true
+          git diff --staged --quiet || git commit -m "bot $(date -u +%FT%H:%M)"
+          git push
