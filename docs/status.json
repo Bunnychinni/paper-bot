@@ -1,0 +1,95 @@
+{
+ "generated": "2026-08-12T03:34:48+00:00",
+ "target_trades": 300,
+ "mode": "PAPER ONLY",
+ "logbook": {
+  "runs": [
+   {
+    "date": "2026-08-12",
+    "ts": "2026-08-12T03:34:47.119197+00:00",
+    "prereg": "27fe684a5c4d20e6",
+    "signals": 1
+   },
+   {
+    "date": "2026-08-11",
+    "ts": "2026-08-11T14:38:59.254025+00:00",
+    "prereg": "27fe684a5c4d20e6",
+    "signals": 2
+   },
+   {
+    "date": "2026-08-11",
+    "ts": "2026-08-11T04:08:57.114103+00:00",
+    "prereg": "27fe684a5c4d20e6",
+    "signals": 2
+   }
+  ],
+  "fills": [
+   {
+    "symbol": "MGM",
+    "side": "OrderSide.BUY",
+    "qty": 577.826901119,
+    "price": 43.756738,
+    "filled_at": "2026-08-11 13:35:20.452642+00:00"
+   },
+   {
+    "symbol": "BRX",
+    "side": "OrderSide.BUY",
+    "qty": 848.693056021,
+    "price": 29.791477,
+    "filled_at": "2026-08-11 13:34:33.877994+00:00"
+   },
+   {
+    "symbol": "MGM",
+    "side": "OrderSide.BUY",
+    "qty": 579.239862543,
+    "price": 43.65,
+    "filled_at": "2026-08-11 13:32:46.566833+00:00"
+   },
+   {
+    "symbol": "BRX",
+    "side": "OrderSide.BUY",
+    "qty": 845.047459894,
+    "price": 29.92,
+    "filled_at": "2026-08-11 13:30:04.407843+00:00"
+   },
+   {
+    "symbol": "QS",
+    "side": "OrderSide.SELL",
+    "qty": 10000.0,
+    "price": 11.47,
+    "filled_at": "2025-11-24 14:30:57.910137+00:00"
+   },
+   {
+    "symbol": "QS",
+    "side": "OrderSide.BUY",
+    "qty": 10000.0,
+    "price": 13.041836,
+    "filled_at": "2025-11-20 14:31:51.024677+00:00"
+   }
+  ],
+  "signals_total": 3,
+  "resolved": 0,
+  "entry_dates": 2
+ },
+ "account": {
+  "equity": 84357.18,
+  "cash": -16855.83,
+  "status": "AccountStatus.ACTIVE",
+  "positions": [
+   {
+    "symbol": "BRX",
+    "qty": 1693.740515915,
+    "avg_entry": 29.8556,
+    "value": 50151.656676,
+    "upl": -415.982671
+   },
+   {
+    "symbol": "MGM",
+    "qty": 1157.066763662,
+    "avg_entry": 43.703467,
+    "value": 51061.35628,
+    "upl": 493.527158
+   }
+  ]
+ }
+}
