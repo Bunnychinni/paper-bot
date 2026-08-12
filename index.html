@@ -43,6 +43,10 @@ footer{color:var(--dim);font-size:12px;margin-top:20px}
 <div class="section">Recent fills</div>
 <table id="fills"><tr><th>Symbol</th><th>Side</th><th>Qty</th><th>Price</th><th>Filled</th></tr></table>
 
+<div class="section">Crypto observation <span style="color:var(--dim);text-transform:none">(logged, never traded)</span></div>
+<table id="crypto"><tr><th>Pair</th><th>Close</th><th>z-20d</th><th>vs 200d</th><th>Signal</th></tr></table>
+<div class="k" id="cryptostats" style="margin:6px 2px 0"></div>
+
 <div class="section">Recent runs</div>
 <table id="runs"><tr><th>Date</th><th>Prereg</th><th>Signals</th></tr></table>
 
@@ -70,6 +74,11 @@ fetch("status.json?t="+Date.now()).then(r=>r.json()).then(d=>{
  (lb.fills||[]).forEach(f=>{const r=$("fills").insertRow();
   r.innerHTML=`<td>${f.symbol}</td><td>${f.side.includes("BUY")||f.side.includes("buy")?"buy":"sell"}</td>
   <td>${(+f.qty).toFixed(2)}</td><td>${money(f.price)}</td><td>${(f.filled_at||"").slice(0,16)}</td>`;});
+ const cr=d.crypto||{};
+ (cr.latest||[]).forEach(c=>{const r=$("crypto").insertRow();
+  r.innerHTML=`<td>${c.symbol}</td><td>${money(c.close)}</td><td>${(+c.z20).toFixed(2)}</td>
+  <td>${(+c.vs200).toFixed(1)}%</td><td>${c.signal?"YES":"—"}</td>`;});
+ $("cryptostats").textContent=cr.observations?`dataset: ${cr.observations} observations over ${cr.days} days (as of ${cr.date||""})`:"no crypto data yet — appears after next bot run";
  (lb.runs||[]).forEach(x=>{const r=$("runs").insertRow();
   r.innerHTML=`<td>${x.date}</td><td>${x.prereg}</td><td>${x.signals}</td>`;
   $("prereg").textContent=x.prereg;});

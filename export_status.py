@@ -40,6 +40,27 @@ def from_logbook():
     return d
 
 
+def crypto():
+    d = dict(latest=[], observations=0, days=0)
+    if not os.path.exists("logbook.db"):
+        return d
+    con = sqlite3.connect("logbook.db")
+    try:
+        last = con.execute("SELECT MAX(obs_date) FROM crypto_obs").fetchone()[0]
+        if last:
+            d["latest"] = [dict(zip(("symbol", "close", "z20", "vs200", "signal"), r))
+                           for r in con.execute(
+                               "SELECT symbol, close, z20, pct_vs_sma200, signal "
+                               "FROM crypto_obs WHERE obs_date=? ORDER BY symbol", (last,))]
+            d["date"] = last
+        d["observations"] = con.execute("SELECT COUNT(*) FROM crypto_obs").fetchone()[0]
+        d["days"] = con.execute("SELECT COUNT(DISTINCT obs_date) FROM crypto_obs").fetchone()[0]
+    except sqlite3.OperationalError:
+        pass
+    con.close()
+    return d
+
+
 def from_alpaca():
     try:
         from alpaca.trading.client import TradingClient
@@ -63,6 +84,7 @@ def main():
         target_trades=TARGET_TRADES,
         mode="PAPER ONLY",
         logbook=from_logbook(),
+        crypto=crypto(),
         account=from_alpaca(),
     )
     with open(OUT, "w") as f:
