@@ -19,11 +19,13 @@ from datetime import date, datetime, timezone
 
 from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import (MarketOrderRequest, LimitOrderRequest,
-                                     GetOrdersRequest, StopLossRequest)
+                                     GetOrdersRequest, StopLossRequest,
+                                     TakeProfitRequest)
 from alpaca.trading.enums import (OrderSide, TimeInForce, QueryOrderStatus,
                                   OrderClass)
 
 DB = "logbook.db"
+MAX_NOTIONAL = float(os.environ.get("MAX_NOTIONAL", "300"))  # cap per position; prereg cost model is $300
 
 
 def client_or_die():
@@ -111,6 +113,7 @@ def protect(c, sym, qty, avg_price, target_pct, stop_pct):
         symbol=sym, qty=whole, side=OrderSide.SELL,
         time_in_force=TimeInForce.GTC, limit_price=tp,
         order_class=OrderClass.OCO,
+        take_profit=TakeProfitRequest(limit_price=tp),
         stop_loss=StopLossRequest(stop_price=st)))
     print(f"  PROTECT {sym}: target {tp} / stop {st} ({whole} sh)")
 
@@ -143,12 +146,16 @@ def morning_run(candidates, target_pct, stop_pct, max_positions=3, pos_frac=0.30
     if kill_switch_engaged():
         flatten_all(c); return
     held = {p.symbol for p in c.get_all_positions()}
-    slots = max_positions - len(held)
+    pending = {o.symbol for o in c.get_orders(
+        GetOrdersRequest(status=QueryOrderStatus.OPEN))
+        if o.side == OrderSide.BUY}
+    taken = held | pending
+    slots = max_positions - len(taken)
     if slots <= 0:
-        print("no free slots"); return
-    fresh = [s for s in candidates if s not in held]
+        print(f"no free slots (held {sorted(held)}, pending {sorted(pending)})"); return
+    fresh = [s for s in candidates if s not in taken]
     cash = settled_cash(acct)
-    per = min(float(acct.equity) * pos_frac, cash / max(slots, 1))
+    per = min(float(acct.equity) * pos_frac, cash / max(slots, 1), MAX_NOTIONAL)
     for sym in fresh[:slots]:
         enter(c, sym, per)
     reconcile(c)
