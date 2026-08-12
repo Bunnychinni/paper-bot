@@ -1,0 +1,77 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paper Bot — Research Dashboard</title>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--line:#30363d;--tx:#e6edf3;--dim:#8b949e;
+--green:#3fb950;--red:#f85149;--accent:#58a6ff}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--tx);font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;padding:16px;max-width:820px;margin:auto}
+h1{font-size:20px;margin-bottom:2px}
+.sub{color:var(--dim);font-size:13px;margin-bottom:16px}
+.badge{display:inline-block;background:#1f6feb22;color:var(--accent);border:1px solid #1f6feb55;border-radius:12px;padding:1px 10px;font-size:12px;margin-left:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.k{color:var(--dim);font-size:12px}.v{font-size:20px;font-weight:600;margin-top:2px}
+.section{margin:18px 0 6px;font-size:14px;color:var(--dim);text-transform:uppercase;letter-spacing:.05em}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th,td{padding:8px 10px;text-align:left;font-size:13px;border-bottom:1px solid var(--line)}
+th{color:var(--dim);font-weight:500}
+tr:last-child td{border-bottom:0}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.bar{background:var(--line);border-radius:6px;height:10px;overflow:hidden;margin-top:6px}
+.bar>div{background:var(--accent);height:100%}
+.warn{background:#bb800922;border:1px solid #bb800955;border-radius:10px;padding:10px 12px;font-size:13px;margin:14px 0;color:#d29922}
+footer{color:var(--dim);font-size:12px;margin-top:20px}
+</style></head><body>
+<h1>Paper Bot <span class="badge" id="mode">PAPER</span></h1>
+<div class="sub" id="generated">loading…</div>
+
+<div class="grid">
+<div class="card"><div class="k">Equity (paper)</div><div class="v" id="equity">—</div></div>
+<div class="card"><div class="k">Settled cash</div><div class="v" id="cash">—</div></div>
+<div class="card"><div class="k">Signals logged</div><div class="v" id="signals">—</div></div>
+<div class="card"><div class="k">Entry dates</div><div class="v" id="dates">—</div></div>
+</div>
+
+<div class="card"><div class="k">Progress to testable sample (<span id="tgt">300</span> resolved trades)</div>
+<div class="v" id="prog">—</div><div class="bar"><div id="progbar" style="width:0%"></div></div>
+<div class="k" style="margin-top:6px">No expectancy is computed before target. Pre-registered.</div></div>
+
+<div class="section">Open positions</div>
+<table id="positions"><tr><th>Symbol</th><th>Qty</th><th>Avg entry</th><th>Value</th><th>Unrealized</th></tr></table>
+
+<div class="section">Recent fills</div>
+<table id="fills"><tr><th>Symbol</th><th>Side</th><th>Qty</th><th>Price</th><th>Filled</th></tr></table>
+
+<div class="section">Recent runs</div>
+<table id="runs"><tr><th>Date</th><th>Prereg</th><th>Signals</th></tr></table>
+
+<div class="warn">Research &amp; education only. Paper trading — no real money. Signals are hypothesis
+tests under pre-registration <b id="prereg">…</b>; nothing here is financial advice.</div>
+<footer>Auto-updated by the bot after each run · hosted on GitHub Pages</footer>
+<script>
+const $=id=>document.getElementById(id);
+const money=x=>x==null?"—":"$"+Number(x).toLocaleString(undefined,{maximumFractionDigits:2});
+fetch("status.json?t="+Date.now()).then(r=>r.json()).then(d=>{
+ $("generated").textContent="updated "+d.generated+" UTC · mode "+d.mode;
+ $("mode").textContent=d.mode;
+ const a=d.account||{};
+ $("equity").textContent=money(a.equity); $("cash").textContent=money(a.cash);
+ const lb=d.logbook||{};
+ $("signals").textContent=lb.signals_total??"—";
+ $("dates").textContent=lb.entry_dates??"—";
+ $("tgt").textContent=d.target_trades;
+ const res=lb.resolved||0, pct=Math.min(100,100*res/d.target_trades);
+ $("prog").textContent=res+" / "+d.target_trades+"  ("+pct.toFixed(1)+"%)";
+ $("progbar").style.width=pct+"%";
+ (a.positions||[]).forEach(p=>{const r=$("positions").insertRow();
+  r.innerHTML=`<td>${p.symbol}</td><td>${p.qty}</td><td>${money(p.avg_entry)}</td>
+  <td>${money(p.value)}</td><td class="${p.upl>=0?'pos':'neg'}">${money(p.upl)}</td>`;});
+ (lb.fills||[]).forEach(f=>{const r=$("fills").insertRow();
+  r.innerHTML=`<td>${f.symbol}</td><td>${f.side.includes("BUY")||f.side.includes("buy")?"buy":"sell"}</td>
+  <td>${(+f.qty).toFixed(2)}</td><td>${money(f.price)}</td><td>${(f.filled_at||"").slice(0,16)}</td>`;});
+ (lb.runs||[]).forEach(x=>{const r=$("runs").insertRow();
+  r.innerHTML=`<td>${x.date}</td><td>${x.prereg}</td><td>${x.signals}</td>`;
+  $("prereg").textContent=x.prereg;});
+}).catch(e=>{$("generated").textContent="status.json not found yet — will appear after the next bot run";});
+</script></body></html>
